@@ -1,8 +1,12 @@
 const std = @import("std");
 
-// Memory. 4096 bytes available. The first 512 bytes (0x000 to 0x1FF) are where
-// the original interpreter was located and should not be used by programs:
-var ram: [4096]u8 = undefined;
+const CPU = struct {
+    // Memory. 4096 bytes available. The first 512 bytes (0x000 to 0x1FF) are
+    // where the original interpreter was located and should not be used by
+    // programs:
+    ram: [4096]u8,
+    registers: Registers,
+};
 
 const Registers = struct {
     // 16 General purpose registers:
@@ -22,7 +26,7 @@ const Registers = struct {
     vD: u8,
     vE: u8,
     vF: u8, // Flag; should not be used by any program.
-    I: u16, // Generally used to store memory addresses.
+    I: u16, // Used to store memory addresses in lowest 12 bits (right).
     // Delay timer; when this register is non-zero, the delay timer subtracts
     // 1 from the value in this register at a rate of 60hz:
     dt: u16,
@@ -38,3 +42,5 @@ const Registers = struct {
     // Stack pointer, points to the topmost level of the stack:
     sp: u8,
 };
+
+
