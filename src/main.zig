@@ -19,12 +19,14 @@ pub fn main() !void {
     defer glfw.terminate();
 
     // Create our window
-    const window = glfw.Window.create(640, 480,
+    const window = glfw.Window.create(
+        640, 480,
         "Hello, mach-glfw!",
-        null, null, .{}) orelse {
+        null, null, .{})
+        orelse {
             std.log.err("failed to create GLFW window: {?s}",
             .{glfw.getErrorString()});
-        std.process.exit(1);
+            std.process.exit(1);
         };
     defer window.destroy();
 
