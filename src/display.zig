@@ -1,5 +1,6 @@
 const std = @import("std");
 const c = @import("c.zig");
+const Bitmap = @import("bitmap.zig").Bitmap;
 
 pub const Display = struct {
     window: *c.SDL_Window,
@@ -78,5 +79,71 @@ pub const Display = struct {
                 else => {},
             }
         }
+    }
+
+    pub fn draw(self: *Display, bitmap: *Bitmap) void {
+        if (bitmap.width != self.framebuffer_width) return;
+        if (bitmap.height != self.framebuffer_height) return;
+
+        // Display colours are chosen here:
+        const clear_value = c.SDL_color {
+            .r = 0,
+            .g = 0,
+            .b = 0,
+            .a = 255,
+        };
+        const colour_value = c.SDL_Color {
+            .r = 255,
+            .g = 255,
+            .b = 255,
+            .a = 255,
+        };
+
+        const pixels: ?*anyopaque = null;
+        const pitch: i32 = 0;
+
+        // Lock framebuffer so we can write pixel data to it:
+        if (c.SDL_LockTexture(self.framebuffer, null, &pixels, &pitch) != 0) {
+            c.SDL_Log("Failed to lock texture: %s\n", c.SDL_GetError());
+            return;
+        }
+
+        // Cast pixels pointer so that we can use offsets:
+        const upixels: [*]u32 = @ptrCast(@alignCast(pixels.?));
+
+        // Copy pixel loop:
+        var y: u8 = 0;
+        while (y < self.framebuffer_height) : (y += 1) {
+
+            var x: u8 = 0;
+
+            while (x < self.framebuffer_width) : (x += 1) {
+
+                const index: usize =
+                    @as(usize, y) * 
+                    @divExact(@as(usize, @intCast(pitch)), @sizeOf(u32)) +
+                    @as(usize, x);
+
+                var colour = undefined;
+                if (bitmap.getPixel(x, y) == 1) {
+                    colour = colour_value;
+                } else {
+                    colour = clear_value;
+                }
+
+                const r: u32 = @as(u32, colour.r) << 24;
+                const g: u32 = @as(u32, colour.g) << 16;
+                const b: u32 = @as(u32, colour.b) << 8;
+                const a: u32 = @as(u32, colour.a) << 0;
+
+                upixels[index]  = r | g | b | a;
+            }
+        }
+
+        c.SDL_UnlockTexture(self.framebuffer);
+
+        c.SDL_RenderClear(self.renderer);
+        c.SDL_RenderCopy(self.renderer, self.framebuffer, null, null);
+        c.SDL_RenderPresent(self.renderer);
     }
 };
