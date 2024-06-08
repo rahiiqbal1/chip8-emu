@@ -40,7 +40,7 @@ const Registers = struct {
     }
 };
 
-const CPU = struct {
+pub const CPU = struct {
     // Memory. 4096 bytes available. The first 512 bytes (0x000 to 0x1FF) are
     // where the original interpreter was located and should not be used by
     // programs:
@@ -54,6 +54,16 @@ const CPU = struct {
         break :blk seed;
     });
     const random_generator = prng.random();
+
+    // Initialises CPU instance:
+    pub fn init() CPU {
+        const registers: Registers = Registers.init();
+
+        return CPU {
+            .ram = [1]u8{0} ** 4096,
+            .registers = registers,
+        };
+    }
 
     // Gets and executes the instruction where program counter is pointing.
     // Note: Instructions are 2 bytes long, and are stored
