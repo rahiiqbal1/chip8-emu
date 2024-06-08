@@ -311,8 +311,21 @@ const CPU = struct {
                                 self.registers.gen_regs[reg_counter];
                             reg_counter += 1;
                             store_loc += 1;
-                        self.registers.incrementPC();
                         }
+                        self.registers.incrementPC();
+                    },
+                    // (Fx65) LD Vx, [I]. Read registers V0 through Vx from 
+                    // memory starting at location I:
+                    0x65 => {
+                        var read_loc: u16 = self.register.I;
+                        var reg_counter: u8 = 0;
+                        while (reg_counter <= x) {
+                            self.registers.gen_regs[reg_counter] =
+                                self.ram[read_loc];
+                            reg_counter += 1;
+                            read_loc += 1;
+                        }
+                        self.registers.incrementPC();
                     },
                 }
             },
