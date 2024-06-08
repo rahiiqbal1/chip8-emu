@@ -253,6 +253,15 @@ const CPU = struct {
                     },
                 }
             },
+            0xF => {
+                switch (kk) {
+                    // (Fx07) LD Vx, DT. Set Vx = delay timer value:
+                    0x07 => {
+                        vx.* = self.registers.dt;
+                        self.registers.incrementPC();
+                    },
+                }
+            },
         }
     }
 };
