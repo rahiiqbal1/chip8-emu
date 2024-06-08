@@ -286,6 +286,21 @@ const CPU = struct {
                     0x29 => {
 
                     },
+                    // (Fx33) LD B, Vx. Store BCD representation of Vx in 
+                    // memory locations I, I+1, and I+2. Takes the decimal 
+                    // value of Vx, and places the hundreds digit in memory
+                    // at location I, the tens digit at location I+1, and the 
+                    // ones digit at location I+2:
+                    0x33 => {
+                        const first_digit: u8 = vx.* / 100;
+                        const second_digit: u8 = (vx.* / 10) - 
+                                                 (first_digit * 10);
+                        const third_digit: u8 = vx.* % 10;
+                        self.ram[self.register.I] = first_digit;
+                        self.ram[self.register.I + 1] = second_digit;
+                        self.ram[self.register.I + 2] = third_digit;
+                        self.registers.incrementPC();
+                    },
                 }
             },
         }
