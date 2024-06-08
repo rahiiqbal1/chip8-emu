@@ -176,6 +176,10 @@ const CPU = struct {
                     self.registers.incrementPC();
                 },
                 // (8xy7) SUBN Vx, Vy. Set Vx = Vy - Vx, set VF = NOT borrow.
+                0x7 => {
+                    vf.* = if (vy.* > vx.*) 1 else 0;
+                    vx.* = vy.* -% vx.*;
+                },
                 }
             },
             
