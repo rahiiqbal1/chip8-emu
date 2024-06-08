@@ -198,6 +198,10 @@ const CPU = struct {
                 }
                 self.registers.incrementPC();
             },
+            // (Annn) LD I, addr. The value of register I is set to nnn:
+            0xA => {
+                self.registers.I = instruction & 0x0FFF;
+            },
         }
     }
 };
