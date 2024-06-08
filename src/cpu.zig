@@ -54,15 +54,17 @@ const CPU = struct {
                                  self.ram[self.registers.pc + 1];
 
         // Getting first nibble for matching:
-        const first_nibble: u4 = instruction & 0xF000 >> 12;
+        const largest_nibble: u4 = instruction & 0xF000 >> 12;
+        // Smallest nibble in instruction to switch over:
+        const smallest_nibble: u4 = instruction & 0x000F;
+        // Rightmost byte in instruction:
+        const kk: u8 = instruction & 0x00FF;
         // X and Y, second and third nibbles for each instruction:
         const x: u4 = instruction & 0x0F00 >> 8;
         const y: u4 = instruction & 0x00F0 >> 4;
         // Pointers to corresponding Vx and Vy registers:
         const vx: *u8 = &self.registers.gen_regs[x];
         const vy: *u8 = &self.registers.gen_regs[y];
-        // Smallest nibble in instruction to switch over:
-        const smallest_nibble: u4 = instruction & 0x000F;
         
         // Checking basic cases first:
         if (instruction == 0x00E0) {
@@ -75,7 +77,7 @@ const CPU = struct {
             // Increment program counter:
             self.registers.incrementPC();
         }
-        switch (first_nibble) {
+        switch (largest_nibble) {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
             // to nnn:
             0x1 => self.registers.pc = instruction & 0xFFF,
@@ -92,13 +94,13 @@ const CPU = struct {
             // register Vx to kk, and if they are equal, increments the program
             // counter by 2:
             0x3 => {
-                if (vx.* == (instruction & 0x00FF)) {
+                if (vx.* == kk) {
                     self.registers.incrementPC();
                 }
             },
             // (4xkk) SNE Vx, byte. Skip next instruction if Vx != kk:
             0x4 => {
-                if (vx.* != (instruction & 0x00FF)) {
+                if (vx.* != kk) {
                     self.registers.incrementPC();
                 }
                 self.registers.incrementPC();
@@ -112,14 +114,14 @@ const CPU = struct {
             },
             // (6xkk) LD Vx, byte. Puts the value kk into register Vx:
             0x6 => {
-                vx.* = (instruction & 0x00FF);
+                vx.* = kk;
                 self.registers.incrementPC();
             },
             // (7xkk) ADD Vx, byte. Adds the value kk to the value in register
             // Vx, then stores the result in Vx. If the result overflows the 
             // 8-bit register, stores the lowest 8 bits only:
             0x7 => {
-                vx.* = @truncate(vx.* + (instruction & 0x00FF));
+                vx.* = @truncate(vx.* + kk);
                 self.registers.incrementPC();
             },
             0x8 => {
