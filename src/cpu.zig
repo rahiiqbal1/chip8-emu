@@ -164,17 +164,18 @@ const CPU = struct {
                 // overflow):
                 0x5 => {
                     vx.* -%= vy.*;
-                    vf.* = if (vy.* > vx.*) 0 else 1;
+                    vf.* = if (vx.* > vy.*) 1 else 0;
                     self.registers.incrementPC();
                 },
                 // (8xy6) SHR Vx {, Vy}. If the least-significant bit of Vx is
                 // 1, then VF is set to 1, otherwise 0. Then Vx is divided by
                 // 2:
                 0x6 => {
-                        vf.* = if ((vx.* & 0b000000001) == 0b1) 1 else 0;
-                        vx.* /= 2;
-                        self.registers.incrementPC();
+                    vf.* = if ((vx.* & 0b000000001) == 0b1) 1 else 0;
+                    vx.* /= 2;
+                    self.registers.incrementPC();
                 },
+                // (8xy7) SUBN Vx, Vy. Set Vx = Vy - Vx, set VF = NOT borrow.
                 }
             },
             
