@@ -171,7 +171,7 @@ const CPU = struct {
                 // 1, then VF is set to 1, otherwise 0. Then Vx is divided by
                 // 2:
                 0x6 => {
-                    vf.* = if ((vx.* & 0b000000001) == 0b1) 1 else 0;
+                    vf.* = if ((vx.* & 0b00000001) == 0b1) 1 else 0;
                     vx.* /= 2;
                     self.registers.incrementPC();
                 },
