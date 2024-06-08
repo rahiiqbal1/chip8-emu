@@ -275,6 +275,11 @@ const CPU = struct {
                         self.registers.st = vx.*;
                         self.registers.incrementPC();
                     },
+                    // (Fx1E) ADD I, Vx. Set I = I + Vx:
+                    0x1E => {
+                        self.registers.I += vx.*;
+                        self.registers.incrementPC();
+                    }
                 }
             },
         }
