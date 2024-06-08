@@ -57,7 +57,7 @@ pub const Display = struct {
             .renderer = renderer,
             .framebuffer = framebuffer,
             .framebuffer_width = framebuffer_width,
-            .framebuffer_heigth = framebuffer_height,
+            .framebuffer_height = framebuffer_height,
         };
     }
 
@@ -69,7 +69,7 @@ pub const Display = struct {
 
     // Handles SDL's queue of events:
     pub fn input(self: *Display) void {
-        const event: c.SDL_Event = undefined;
+        var event: c.SDL_Event = undefined;
 
         while (c.SDL_PollEvent(&event) != 0) {
             switch(event.@"type") {
@@ -86,7 +86,7 @@ pub const Display = struct {
         if (bitmap.height != self.framebuffer_height) return;
 
         // Display colours are chosen here:
-        const clear_value = c.SDL_color {
+        const clear_value = c.SDL_Color {
             .r = 0,
             .g = 0,
             .b = 0,
@@ -99,8 +99,8 @@ pub const Display = struct {
             .a = 255,
         };
 
-        const pixels: ?*anyopaque = null;
-        const pitch: i32 = 0;
+        var pixels: ?*anyopaque = null;
+        var pitch: i32 = 0;
 
         // Lock framebuffer so we can write pixel data to it:
         if (c.SDL_LockTexture(self.framebuffer, null, &pixels, &pitch) != 0) {
@@ -124,12 +124,8 @@ pub const Display = struct {
                     @divExact(@as(usize, @intCast(pitch)), @sizeOf(u32)) +
                     @as(usize, x);
 
-                var colour = undefined;
-                if (bitmap.getPixel(x, y) == 1) {
-                    colour = colour_value;
-                } else {
-                    colour = clear_value;
-                }
+                const colour = if (bitmap.getPixel(x, y) == 1) colour_value 
+                    else clear_value;
 
                 const r: u32 = @as(u32, colour.r) << 24;
                 const g: u32 = @as(u32, colour.g) << 16;
@@ -140,10 +136,10 @@ pub const Display = struct {
             }
         }
 
-        c.SDL_UnlockTexture(self.framebuffer);
+        _ = c.SDL_UnlockTexture(self.framebuffer);
 
-        c.SDL_RenderClear(self.renderer);
-        c.SDL_RenderCopy(self.renderer, self.framebuffer, null, null);
-        c.SDL_RenderPresent(self.renderer);
+        _ = c.SDL_RenderClear(self.renderer);
+        _ = c.SDL_RenderCopy(self.renderer, self.framebuffer, null, null);
+        _ = c.SDL_RenderPresent(self.renderer);
     }
 };
