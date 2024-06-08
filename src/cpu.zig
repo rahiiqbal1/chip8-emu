@@ -65,6 +65,8 @@ const CPU = struct {
         // Pointers to corresponding Vx and Vy registers:
         const vx: *u8 = &self.registers.gen_regs[x];
         const vy: *u8 = &self.registers.gen_regs[y];
+        // Pointer to flag register:
+        const vf: *u8 = &self.registers.gen_regs[0xF];
         
         // Checking basic cases first:
         if (instruction == 0x00E0) {
@@ -152,7 +154,7 @@ const CPU = struct {
                 0x4 => {
                     const sum: u16 = vx.* + vy.*; 
                     const truncated_sum: u8 = @truncate(sum);
-                    self.registers.gen_regs[0xF] = if (sum > 0xFF) 1 else 0;
+                    vf.* = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
                     self.registers.incrementPC();
                 },
@@ -162,8 +164,16 @@ const CPU = struct {
                 // overflow):
                 0x5 => {
                     vx.* -%= vy.*;
-                    self.registers.gen_regs[0xF] = if (vy > vx) 1 else 0;
+                    vf.* = if (vy.* > vx.*) 0 else 1;
                     self.registers.incrementPC();
+                },
+                // (8xy6) SHR Vx {, Vy}. If the least-significant bit of Vx is
+                // 1, then VF is set to 1, otherwise 0. Then Vx is divided by
+                // 2:
+                0x6 => {
+                        vf.* = if ((vx.* & 0b000000001) == 0b1) 1 else 0;
+                        vx.* /= 2;
+                        self.registers.incrementPC();
                 },
                 }
             },
