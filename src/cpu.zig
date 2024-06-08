@@ -301,6 +301,19 @@ const CPU = struct {
                         self.ram[self.register.I + 2] = third_digit;
                         self.registers.incrementPC();
                     },
+                    // (Fx55) LD [I], Vx. Store registers V0 through Vx in 
+                    // memory starting at location I:
+                    0x55 => {
+                        var store_loc: u16 = self.registers.I;
+                        var reg_counter: u8 = 0;
+                        while (reg_counter <= x) {
+                            self.ram[store_loc] =
+                                self.registers.gen_regs[reg_counter];
+                            reg_counter += 1;
+                            store_loc += 1;
+                        self.registers.incrementPC();
+                        }
+                    },
                 }
             },
         }
