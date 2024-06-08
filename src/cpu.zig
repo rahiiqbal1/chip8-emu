@@ -260,6 +260,11 @@ const CPU = struct {
                         vx.* = self.registers.dt;
                         self.registers.incrementPC();
                     },
+                    // (Fx0A) LD Vx, K. Wait for a key press, store the value
+                    // of the key in Vx:
+                    0x0A => {
+
+                    },
                 }
             },
         }
