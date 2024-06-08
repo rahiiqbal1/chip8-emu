@@ -32,7 +32,7 @@ const CPU = struct {
     // Memory. 4096 bytes available. The first 512 bytes (0x000 to 0x1FF) are
     // where the original interpreter was located and should not be used by
     // programs:
-    ram: [4096]u8,
+    memory: *[4096]u8,
     registers: Registers,
 
     // Random number generator:
@@ -58,8 +58,8 @@ const CPU = struct {
         // Getting and storing 2-byte instruction. Instructions are stored
         // big-endian, so need to shift left by 8 bits. Or-ing with pc + 1
         // as the pc only points to 1 byte at a time:
-        const instruction: u16 = self.ram[self.registers.pc] << 8 |
-                                 self.ram[self.registers.pc + 1];
+        const instruction: u16 = self.memory.*[self.registers.pc] << 8 |
+                                 self.memory.*[self.registers.pc + 1];
 
         // Getting first nibble for matching:
         const largest_nibble: u4 = instruction & 0xF000 >> 12;
@@ -296,9 +296,9 @@ const CPU = struct {
                         const second_digit: u8 = (vx.* / 10) - 
                                                  (first_digit * 10);
                         const third_digit: u8 = vx.* % 10;
-                        self.ram[self.register.I] = first_digit;
-                        self.ram[self.register.I + 1] = second_digit;
-                        self.ram[self.register.I + 2] = third_digit;
+                        self.memory.*[self.register.I] = first_digit;
+                        self.memory.*[self.register.I + 1] = second_digit;
+                        self.memory.*[self.register.I + 2] = third_digit;
                         self.registers.incrementPC();
                     },
                     // (Fx55) LD [I], Vx. Store registers V0 through Vx in 
@@ -307,7 +307,7 @@ const CPU = struct {
                         var store_loc: u16 = self.registers.I;
                         var reg_counter: u8 = 0;
                         while (reg_counter <= x) {
-                            self.ram[store_loc] =
+                            self.memory.*[store_loc] =
                                 self.registers.gen_regs[reg_counter];
                             reg_counter += 1;
                             store_loc += 1;
@@ -321,7 +321,7 @@ const CPU = struct {
                         var reg_counter: u8 = 0;
                         while (reg_counter <= x) {
                             self.registers.gen_regs[reg_counter] =
-                                self.ram[read_loc];
+                                self.memory.*[read_loc];
                             reg_counter += 1;
                             read_loc += 1;
                         }
