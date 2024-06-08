@@ -179,6 +179,7 @@ const CPU = struct {
                 0x7 => {
                     vf.* = if (vy.* > vx.*) 1 else 0;
                     vx.* = vy.* -% vx.*;
+                    self.registers.incrementPC();
                 },
                 // (8xyE) SHL Vx {, Vy}. Set Vx = Vx SHL 1. If the most-
                 // significant bit of Vx is 1, then VF is set to 1, otherwise
@@ -186,10 +187,13 @@ const CPU = struct {
                 0xE => {
                     vf.* = if ((vx.* & 0b10000000) == 0b10000000) 1 else 0;
                     vx.* *= 2;
+                    self.registers.incrementPC();
                 }
                 }
             },
-            
+            0x9 => {
+
+            },
         }
     }
 };
