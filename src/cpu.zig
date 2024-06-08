@@ -265,6 +265,16 @@ const CPU = struct {
                     0x0A => {
 
                     },
+                    // (Fx15) LD DT, Vx. Set delay timer = Vx:
+                    0x15 => {
+                        self.registers.dt = vx.*;
+                        self.registers.incrementPC();
+                    },
+                    // (Fx18) LD ST, Vx. Set sound timer = Vx:
+                    0x18 => {
+                        self.registers.st = vx.*;
+                        self.registers.incrementPC();
+                    },
                 }
             },
         }
