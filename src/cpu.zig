@@ -237,6 +237,22 @@ const CPU = struct {
             0xD => {
 
             },
+            0xE => {
+                switch (kk) {
+                    // (Ex9E) SKP Vx. Skip next instruction if key with the 
+                    // value of Vx is pressed. Checks the keyboard, and if the
+                    // key corresponding to the value of Vx is currently down,
+                    // PC is increased by 2: todo
+                    0x9E => {
+
+                    },
+                    // (ExA1) SKNP Vx. Skip next instruction if key with the 
+                    // value of Vx is not pressed: todo
+                    0xA1 => {
+
+                    },
+                }
+            },
         }
     }
 };
