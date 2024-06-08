@@ -130,19 +130,23 @@ const CPU = struct {
                 // register Vx:
                 0x0 => {
                     vx.* = vy.*;
+                    self.registers.incrementPC();
                 },
                 // (8xy1) OR Vx, Vy. Performs a bitwise OR on the values in Vx
                 // and Vy, then stores the result in Vx:
                 0x1 => {
                     vx.* |= vy.*; 
+                    self.registers.incrementPC();
                 },
                 // (8xy2) AND Vx, Vy. Set Vx = Vx AND Vy.
                 0x2 => {
                     vx.* &= vy.*; 
+                    self.registers.incrementPC();
                 },
                 // (8xy3) XOR Vx, Vy. Bitwise XOR on Vx and Vy, stores in Vx:
                 0x3 => {
                     vx.* ^= vy.*; 
+                    self.registers.incrementPC();
                 },
                 // (8xy4) ADD Vx, Vy. Set Vx = Vx + Vy, set VF = carry:
                 0x4 => {
@@ -150,6 +154,7 @@ const CPU = struct {
                     const truncated_sum: u8 = @truncate(sum);
                     self.registers.gen_regs[0xF] = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
+                    self.registers.incrementPC();
                 },
                 // (8xy5) SUB Vx, Vy. Set Vx = Vx - Vy. Set VF = NOT borrow.
                 // If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is 
@@ -158,6 +163,7 @@ const CPU = struct {
                 0x5 => {
                     vx.* -%= vy.*;
                     self.registers.gen_regs[0xF] = if (vy > vx) 1 else 0;
+                    self.registers.incrementPC();
                 },
                 }
             },
