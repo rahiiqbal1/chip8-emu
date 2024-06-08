@@ -35,6 +35,14 @@ const CPU = struct {
     ram: [4096]u8,
     registers: Registers,
 
+    // Random number generator:
+    var prng = std.rand.DefaultPrng.init(blk: {
+        var seed: u64 = undefined;
+        std.os.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    const random_generator = prng.random();
+
     // Gets and executes the instruction where program counter is pointing.
     // Note: Instructions are 2 bytes long, and are stored
     // most-significant-byte first. The first byte of each instruction should
@@ -208,6 +216,15 @@ const CPU = struct {
             0xB => {
                 self.registers.pc = (instruction & 0x0FFF) +
                                     self.registers.gen_regs[0];
+            },
+            // (Cxkk) RND Vx, byte. Generates a random number from 0 to 255,
+            // which is then ANDed with the value kk. The result is stored in 
+            // Vx:
+            0xC => {
+                const rand_num: u8 = random_generator.intRangeAtMost(
+                    u8, 0, 255);
+                vx.* = rand_num & kk;
+                self.registers.incrementPC();
             },
         }
     }
