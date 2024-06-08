@@ -203,7 +203,12 @@ const CPU = struct {
                 self.registers.I = instruction & 0x0FFF;
                 self.registers.incrementPC();
             },
-            // 
+            // (Bnnn) JP V0, addr. Jump to location nnn + V0. The program 
+            // counter is set to nnn plus the value in V0:
+            0xB => {
+                self.registers.pc = (instruction & 0x0FFF) +
+                                    self.registers.gen_regs[0];
+            },
         }
     }
 };
