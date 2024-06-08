@@ -191,8 +191,12 @@ const CPU = struct {
                 }
                 }
             },
+            // (9xy0) SNE Vx, Vy. Skip next instruction if Vx != Vy:
             0x9 => {
-
+                if (vx.* != vy.*) {
+                    self.registers.incrementPC();
+                }
+                self.registers.incrementPC();
             },
         }
     }
