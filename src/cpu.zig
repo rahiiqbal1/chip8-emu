@@ -279,7 +279,13 @@ const CPU = struct {
                     0x1E => {
                         self.registers.I += vx.*;
                         self.registers.incrementPC();
-                    }
+                    },
+                    // (Fx29) LD F, Vx. Set I = location of sprite for digit 
+                    // Vx. The value of I is set to the location for the
+                    // hexadecimal sprite corresponding to the value of Vx:
+                    0x29 => {
+
+                    },
                 }
             },
         }
