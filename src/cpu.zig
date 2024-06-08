@@ -22,6 +22,18 @@ const Registers = struct {
     // Stack pointer, points to the topmost level of the stack:
     sp: u8,
 
+    pub fn init() Registers {
+        return Registers {
+            .gen_regs = [1]u8{0} ** 16,
+            .I = 0,
+            .dt = 0,
+            .st = 0,
+            .pc = 0,
+            .stack = [1]u8{0} ** 16,
+            .sp = 0,
+        };
+    }
+
     pub inline fn incrementPC(self: *Registers) void {
         // Incrementing by 2 because instructions are 2 bytes long:
         self.pc += 2;
