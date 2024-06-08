@@ -4,9 +4,14 @@ const c = @import("c.zig");
 pub const Display = struct {
     window: *c.SDL_Window,
     open: bool,
+    renderer: *c.SDL_Renderer,
+    framebuffer: *c.SDL_Texture,
+    framebuffer_width: u8,
+    framebuffer_height: u8,
 
     // Creates SDL window instance:
-    pub fn create(title: [*]const u8, width: i32, height: i32) !Display {
+    pub fn create(title: [*]const u8, width: i32, height: i32,
+        framebuffer_width: u8, framebuffer_height: u8) !Display {
         // Initialise SDL2:
         if (c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_AUDIO) != 0) {
             return error.SDLInitialisationFailed;
