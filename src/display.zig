@@ -22,10 +22,36 @@ pub const Display = struct {
             return error.SDLWindowCreationFailed;
         };
 
+        // Create SDL2 renderer:
+        const renderer = c.SDL_CreateRenderer(
+            window, -1, c.SDL_RENDERER_ACCELERATED
+            ) orelse {
+            c.SDL_DestroyWindow(window);
+            c.SDL_Quit();
+            return error.SDLRendererCreationFailed;
+        };
+
+        // Create display framebuffer:
+        const framebuffer = c.SDL_CreateTexture(
+            renderer,
+            c.SDL_PIXELFORMAT_RGBA8888,
+            c.SDL_TEXTUREACCESS_STREAMING,
+            framebuffer_width, framebuffer_height
+        ) orelse {
+            c.SDL_DestroyRenderer(renderer);
+            c.SDL_DestroyWindow(window);
+            c.SDL_Quit();
+            return error.SDLTextureNull;
+        };
+
         // Return display:
         return Display {
             .window = window,
             .open = true,
+            .renderer = renderer,
+            .framebuffer = framebuffer,
+            .framebuffer_width = framebuffer_width,
+            .framebuffer_heigth = framebuffer_height,
         };
     }
 
