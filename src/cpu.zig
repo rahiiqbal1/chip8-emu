@@ -66,6 +66,8 @@ pub const CPU = struct {
         return CPU {
             .ram = [1]u8{0} ** 4096,
             .registers = registers,
+            .bitmap = Bitmap.create(),
+            .display = Display.create(),
         };
     }
 
