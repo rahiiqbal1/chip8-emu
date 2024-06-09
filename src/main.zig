@@ -17,7 +17,6 @@ pub fn main() !void {
     // Creating bitmap:
     var bitmap = try Bitmap.create(allocator, 64, 32);
     defer bitmap.free();
-    _ = bitmap.setPixel(5, 5);
 
     // Initialising display:
     var display = try Display.create("CHIP-8", 800, 400,
@@ -25,12 +24,29 @@ pub fn main() !void {
     );
     defer display.free();
 
-    var dev_test: Device = Device.create();
-    _ = try dev_test.loadROM("/home/rahi/projs/chip8-emu/roms/tetris.rom");
+    // Creating device and loading rom:
+    var chip8: Device = Device.create(&bitmap, &display);
+    _ = try chip8.loadROM("/home/rahi/projs/chip8-emu/roms/tetris.rom");
 
     // Display loop:
+    const fps: f32 = 60.0;
+    const fps_interval = 1000.0 / fps;
+    var previous_time = std.time.milliTimestamp();
+    var current_time = std.time.milliTimestamp();
+
     while (display.open == true) {
         display.input();
-        display.draw(&bitmap);
+
+        current_time = std.time.milliTimestamp();
+        const time_diff = @as(f32,
+            @floatFromInt(current_time - previous_time)
+        );
+        if (time_diff > fps_interval) {
+            previous_time = current_time;
+
+            try chip8.cpu.cycle();
+
+            chip8.cpu.display.draw(&bitmap);
+        }
     }
 }

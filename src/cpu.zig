@@ -50,13 +50,13 @@ pub const CPU = struct {
     registers: Registers,
     bitmap: *Bitmap,
     display: *Display,
+    paused: bool,
+    paused_x: u8, // for storing key press after unpausing.
+    speed: u8,
+    
 
     // Random number generator:
-    var prng = std.rand.DefaultPrng.init(blk: {
-        var seed: u64 = undefined;
-        std.os.getrandom(std.mem.asBytes(&seed));
-        break :blk seed;
-    });
+    var prng = std.rand.DefaultPrng.init(0); 
     const random_generator = prng.random();
 
     // Initialises CPU instance:
@@ -68,6 +68,9 @@ pub const CPU = struct {
             .registers = registers,
             .bitmap = bitmap,
             .display = display,
+            .paused = false,
+            .paused_x = 0,
+            .speed = 10,
         };
     }
 
@@ -86,18 +89,18 @@ pub const CPU = struct {
         // Getting and storing 2-byte instruction. Instructions are stored
         // big-endian, so need to shift left by 8 bits. Or-ing with pc + 1
         // as the pc only points to 1 byte at a time:
-        const instruction: u16 = self.ram[self.registers.pc] << 8 |
+        const instruction: u16 = @as(u16, self.ram[self.registers.pc]) << 8 |
                                  self.ram[self.registers.pc + 1];
 
         // Getting first nibble for matching:
-        const largest_nibble: u4 = instruction & 0xF000 >> 12;
+        const largest_nibble: u4 = @truncate(instruction & 0xF000 >> 12);
         // Smallest nibble in instruction to switch over:
-        const smallest_nibble: u4 = instruction & 0x000F;
+        const smallest_nibble: u4 = @truncate(instruction & 0x000F);
         // Rightmost byte in instruction:
-        const kk: u8 = instruction & 0x00FF;
+        const kk: u8 = @truncate(instruction & 0x00FF);
         // X and Y, second and third nibbles for each instruction:
-        const x: u4 = instruction & 0x0F00 >> 8;
-        const y: u4 = instruction & 0x00F0 >> 4;
+        const x: u4 = @truncate(instruction & 0x0F00 >> 8);
+        const y: u4 = @truncate(instruction & 0x00F0 >> 4);
         // Pointers to corresponding Vx and Vy registers:
         const vx: *u8 = &self.registers.gen_regs[x];
         const vy: *u8 = &self.registers.gen_regs[y];
@@ -224,7 +227,8 @@ pub const CPU = struct {
                     vf.* = if ((vx.* & 0b10000000) == 0b10000000) 1 else 0;
                     vx.* *= 2;
                     self.registers.incrementPC();
-                }
+                },
+                else => {},
                 }
             },
             // (9xy0) SNE Vx, Vy. Skip next instruction if Vx != Vy:
@@ -270,9 +274,9 @@ pub const CPU = struct {
 
                 var row: u8 = 0;
                 while (row < height) : (row += 1) {
-                    const sprite = self.ram[self.registers.I + row];
+                    var sprite = self.ram[self.registers.I + row];
 
-                    const col: u8 = 0;
+                    var col: u8 = 0;
                     while (col < width) : (col += 1) {
                         // Wrap x and y around the screen if out-of-bounds:
                         const px: u8 =
@@ -320,19 +324,22 @@ pub const CPU = struct {
                         }
                         self.registers.incrementPC();
                     },
+                    else => {},
                 }
             },
             0xF => {
                 switch (kk) {
                     // (Fx07) LD Vx, DT. Set Vx = delay timer value:
                     0x07 => {
-                        vx.* = self.registers.dt;
+                        vx.* = @truncate(self.registers.dt);
                         self.registers.incrementPC();
                     },
                     // (Fx0A) LD Vx, K. Wait for a key press, store the value
                     // of the key in Vx:
                     0x0A => {
-
+                        self.paused = true;
+                        self.paused_x = @as(u8, x);
+                        self.registers.incrementPC();
                     },
                     // (Fx15) LD DT, Vx. Set delay timer = Vx:
                     0x15 => {
@@ -353,7 +360,9 @@ pub const CPU = struct {
                     // Vx. The value of I is set to the location for the
                     // hexadecimal sprite corresponding to the value of Vx:
                     0x29 => {
-
+                        // Multiply by 5 since every sprite is 5 bytes long:
+                        self.registers.I = @as(u16, @intCast(vx.*)) * 5;
+                        self.registers.incrementPC();
                     },
                     // (Fx33) LD B, Vx. Store BCD representation of Vx in 
                     // memory locations I, I+1, and I+2. Takes the decimal 
@@ -365,9 +374,9 @@ pub const CPU = struct {
                         const second_digit: u8 = (vx.* / 10) - 
                                                  (first_digit * 10);
                         const third_digit: u8 = vx.* % 10;
-                        self.ram[self.register.I] = first_digit;
-                        self.ram[self.register.I + 1] = second_digit;
-                        self.ram[self.register.I + 2] = third_digit;
+                        self.ram[self.registers.I] = first_digit;
+                        self.ram[self.registers.I + 1] = second_digit;
+                        self.ram[self.registers.I + 2] = third_digit;
                         self.registers.incrementPC();
                     },
                     // (Fx55) LD [I], Vx. Store registers V0 through Vx in 
@@ -386,7 +395,7 @@ pub const CPU = struct {
                     // (Fx65) LD Vx, [I]. Read registers V0 through Vx from 
                     // memory starting at location I:
                     0x65 => {
-                        var read_loc: u16 = self.register.I;
+                        var read_loc: u16 = self.registers.I;
                         var reg_counter: u8 = 0;
                         while (reg_counter <= x) {
                             self.registers.gen_regs[reg_counter] =
@@ -396,8 +405,10 @@ pub const CPU = struct {
                         }
                         self.registers.incrementPC();
                     },
+                    else => {},
                 }
             },
+            else => {},
         }
     }
 };
