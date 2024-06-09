@@ -80,43 +80,139 @@ pub const Display = struct {
                 },
                 c.SDL_KEYDOWN => {
                     switch(event.@"key".@"keysym".@"scancode") {
-                        c.SDL_SCANCODE_1 => { self.keys[0x1] = true; },
-                        c.SDL_SCANCODE_2 => { self.keys[0x2] = true; },
-                        c.SDL_SCANCODE_3 => { self.keys[0x3] = true; },
-                        c.SDL_SCANCODE_4 => { self.keys[0xC] = true; },
-                        c.SDL_SCANCODE_Q => { self.keys[0x4] = true; },
-                        c.SDL_SCANCODE_W => { self.keys[0x5] = true; },
-                        c.SDL_SCANCODE_E => { self.keys[0x6] = true; },
-                        c.SDL_SCANCODE_R => { self.keys[0xD] = true; },
-                        c.SDL_SCANCODE_A => { self.keys[0x7] = true; },
-                        c.SDL_SCANCODE_S => { self.keys[0x8] = true; },
-                        c.SDL_SCANCODE_D => { self.keys[0x9] = true; },
-                        c.SDL_SCANCODE_F => { self.keys[0xE] = true; },
-                        c.SDL_SCANCODE_Z => { self.keys[0xA] = true; },
-                        c.SDL_SCANCODE_X => { self.keys[0x0] = true; },
-                        c.SDL_SCANCODE_C => { self.keys[0xB] = true; },
-                        c.SDL_SCANCODE_V => { self.keys[0xF] = true; },
+                        c.SDL_SCANCODE_1 => {
+                            self.keys[0x1] = true; 
+                            std.debug.print("1DOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_2 => {
+                            self.keys[0x2] = true; 
+                            std.debug.print("2DOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_3 => {
+                            self.keys[0x3] = true; 
+                            std.debug.print("3DOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_4 => {
+                            self.keys[0xC] = true; 
+                            std.debug.print("4DOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_Q => {
+                            self.keys[0x4] = true; 
+                            std.debug.print("QDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_W => {
+                            self.keys[0x5] = true; 
+                            std.debug.print("WDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_E => {
+                            self.keys[0x6] = true; 
+                            std.debug.print("EDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_R => {
+                            self.keys[0xD] = true; 
+                            std.debug.print("RDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_A => {
+                            self.keys[0x7] = true; 
+                            std.debug.print("ADOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_S => {
+                            self.keys[0x8] = true; 
+                            std.debug.print("SDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_D => {
+                            self.keys[0x9] = true; 
+                            std.debug.print("DDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_F => {
+                            self.keys[0xE] = true; 
+                            std.debug.print("FDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_Z => {
+                            self.keys[0xA] = true; 
+                            std.debug.print("ZDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_X => {
+                            self.keys[0x0] = true; 
+                            std.debug.print("XDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_C => {
+                            self.keys[0xB] = true; 
+                            std.debug.print("CDOWN\n", .{});
+                        },
+                        c.SDL_SCANCODE_V => {
+                            self.keys[0xF] = true; 
+                            std.debug.print("VDOWN\n", .{});
+                        },
                         else => {},
                     }
                 },
                 c.SDL_KEYUP => {
                     switch(event.@"key".@"keysym".@"scancode") {
-                        c.SDL_SCANCODE_1 => { self.keys[0x1] = false; },
-                        c.SDL_SCANCODE_2 => { self.keys[0x2] = false; },
-                        c.SDL_SCANCODE_3 => { self.keys[0x3] = false; },
-                        c.SDL_SCANCODE_4 => { self.keys[0xC] = false; },
-                        c.SDL_SCANCODE_Q => { self.keys[0x4] = false; },
-                        c.SDL_SCANCODE_W => { self.keys[0x5] = false; },
-                        c.SDL_SCANCODE_E => { self.keys[0x6] = false; },
-                        c.SDL_SCANCODE_R => { self.keys[0xD] = false; },
-                        c.SDL_SCANCODE_A => { self.keys[0x7] = false; },
-                        c.SDL_SCANCODE_S => { self.keys[0x8] = false; },
-                        c.SDL_SCANCODE_D => { self.keys[0x9] = false; },
-                        c.SDL_SCANCODE_F => { self.keys[0xE] = false; },
-                        c.SDL_SCANCODE_Z => { self.keys[0xA] = false; },
-                        c.SDL_SCANCODE_X => { self.keys[0x0] = false; },
-                        c.SDL_SCANCODE_C => { self.keys[0xB] = false; },
-                        c.SDL_SCANCODE_V => { self.keys[0xF] = false; },
+                        c.SDL_SCANCODE_1 => {
+                            self.keys[0x1] = false; 
+                            std.debug.print("1UP\n", .{});
+                        },
+                        c.SDL_SCANCODE_2 => {
+                            self.keys[0x2] = false; 
+                            std.debug.print("2UP\n", .{});
+                        },
+                        c.SDL_SCANCODE_3 => {
+                            self.keys[0x3] = false; 
+                            std.debug.print("3UP\n", .{});
+                        },
+                        c.SDL_SCANCODE_4 => {
+                            self.keys[0xC] = false; 
+                            std.debug.print("4UP\n", .{});
+                        },
+                        c.SDL_SCANCODE_Q => {
+                            self.keys[0x4] = false; 
+                            std.debug.print("QUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_W => {
+                            self.keys[0x5] = false; 
+                            std.debug.print("WUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_E => {
+                            self.keys[0x6] = false; 
+                            std.debug.print("EUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_R => {
+                            self.keys[0xD] = false; 
+                            std.debug.print("RUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_A => {
+                            self.keys[0x7] = false; 
+                            std.debug.print("AUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_S => {
+                            self.keys[0x8] = false; 
+                            std.debug.print("SUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_D => {
+                            self.keys[0x9] = false; 
+                            std.debug.print("DUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_F => {
+                            self.keys[0xE] = false; 
+                            std.debug.print("FUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_Z => {
+                            self.keys[0xA] = false; 
+                            std.debug.print("ZUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_X => {
+                            self.keys[0x0] = false; 
+                            std.debug.print("XUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_C => {
+                            self.keys[0xB] = false; 
+                            std.debug.print("CUP\n", .{});
+                        },
+                        c.SDL_SCANCODE_V => {
+                            self.keys[0xF] = false; 
+                            std.debug.print("VUP\n", .{});
+                        },
                         else => {},
                     }
                 },
