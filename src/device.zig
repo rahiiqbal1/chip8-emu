@@ -1,5 +1,5 @@
 const std = @import("std");
-const cpu = @import("cpu.zig");
+const CPU = @import("cpu.zig").CPU;
 
 const DEFAULT_FONT = [80]u8 {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -21,12 +21,12 @@ const DEFAULT_FONT = [80]u8 {
 };
 
 pub const Device = struct {
-    cpu: cpu.CPU,
+    cpu: CPU,
 
     // Create the device:
     pub fn create() Device {
         return Device {
-            .cpu = cpu.CPU.init(),
+            .cpu = CPU.init(),
         };
     }
 
