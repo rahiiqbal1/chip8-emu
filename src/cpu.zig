@@ -106,10 +106,13 @@ pub const CPU = struct {
         const vy: *u8 = &self.registers.gen_regs[y];
         // Pointer to flag register:
         const vf: *u8 = &self.registers.gen_regs[0xF];
+
+        std.debug.print("Current instruction: {x}\n", .{instruction});
         
         // Checking basic cases first:
         if (instruction == 0x00E0) {
             self.bitmap.clear(0);
+            self.registers.incrementPC();
             std.debug.print("00E0\n", .{});
         // RET. Return from a subroutine. Sets to pc to the address at the top
         // of the stack and then decrements the stack pointer:
@@ -127,6 +130,7 @@ pub const CPU = struct {
             0x1 => {
                 self.registers.pc = instruction & 0xFFF;
                 std.debug.print("1nnn\n", .{});
+                self.registers.incrementPC();
             },
             // (2nnn) CALL addr. Calls subroutine at nnn. Increments stack
             // pointer, then puts the current pc on the top of the stack.
@@ -137,6 +141,7 @@ pub const CPU = struct {
                     self.registers.pc;
                 self.registers.pc = instruction & 0xFFF;
                 std.debug.print("2nnn\n", .{});
+                self.registers.incrementPC();
             },
             // (3xkk) SE Vx, byte. Skip next instruction if Vx = kk. Compares
             // register Vx to kk, and if they are equal, increments the program
