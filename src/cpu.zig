@@ -75,7 +75,7 @@ pub const CPU = struct {
     // Note: Instructions are 2 bytes long, and are stored
     // most-significant-byte first. The first byte of each instruction should
     // be located at an even address.
-    fn cycle (self: *CPU) !void {
+    pub fn cycle (self: *CPU) !void {
         // Checking that the pc address is valid:
         if (self.registers.pc > 0xFFF) {
             std.debug.print("The PC address {} is greater than is possible.\n",
