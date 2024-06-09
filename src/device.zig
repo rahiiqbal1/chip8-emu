@@ -20,7 +20,7 @@ const DEFAULT_FONT = [80]u8 {
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-pub const Device = struct {
+const Device = struct {
     cpu: cpu.CPU,
 
     // Create the device:
