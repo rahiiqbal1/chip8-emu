@@ -78,6 +78,36 @@ pub const CPU = struct {
     // most-significant-byte first. The first byte of each instruction should
     // be located at an even address.
     pub fn cycle (self: *CPU) !void {
+
+        if (self.paused) {
+            var i: u8 = 0;
+            while (i < 16) : (i += 1) {
+                if (self.display.keys[i]) {
+                    self.paused = false;
+                    self.registers.gen_regs[self.paused_x] = i;
+                }
+            }
+        }
+
+        var i: u8 = 0;
+        while (i < self.speed) : (i += 1) {
+            // Don't run instructions if the emulator is paused:
+            if (!self.paused) {
+                try self.executeInstruction();
+            }
+        }
+
+        if (!self.paused) {
+            self.updateTimers();
+        }
+    }
+
+    fn updateTimers(self: *CPU) void {
+        if (self.registers.dt > 0) self.registers.dt -= 1;
+        if (self.registers.st > 0) self.registers.st -= 1;
+    }
+
+    fn executeInstruction(self: *CPU) !void {
         // Checking that the pc address is valid:
         if (self.registers.pc > 0xFFF) {
             std.debug.print("The PC address {} is greater than is possible.\n",
@@ -106,6 +136,7 @@ pub const CPU = struct {
         // Pointer to flag register:
         const vf: *u8 = &self.registers.gen_regs[0xF];
 
+        std.debug.print("----------\n", .{});
         std.debug.print("Current instruction: {x}\n", .{instruction});
         std.debug.print("Largest nibble: {x}\n", .{largest_nibble});
         std.debug.print("Smallest nibble: {x}\n", .{smallest_nibble});
@@ -180,7 +211,7 @@ pub const CPU = struct {
             // Vx, then stores the result in Vx. If the result overflows the 
             // 8-bit register, stores the lowest 8 bits only:
             0x7 => {
-                vx.* = @truncate(vx.* + kk);
+                vx.* +%= kk;
                 self.registers.incrementPC();
                 std.debug.print("7xkk\n", .{});
             },
@@ -261,7 +292,7 @@ pub const CPU = struct {
                     std.debug.print("8xyE\n", .{});
                 },
                 else => {
-                    std.debug.print("Unknown 8xyn instruction: {x}\n",
+                    std.debug.panic("Unknown 8xyn instruction: {x}\n",
                                     .{instruction});
                 },
                 }
@@ -367,7 +398,7 @@ pub const CPU = struct {
                         std.debug.print("ExA1\n", .{});
                     },
                     else => {
-                        std.debug.print("Unknown Exkk instruction: {x}\n",
+                        std.debug.panic("Unknown Exkk instruction: {x}\n",
                                         .{instruction});
                     },
                 }
@@ -460,13 +491,13 @@ pub const CPU = struct {
                         std.debug.print("Fx65\n", .{});
                     },
                     else => {
-                        std.debug.print("Unknown Fxkk instruction: {x}\n",
+                        std.debug.panic("Unknown Fxkk instruction: {x}\n",
                                         .{instruction});
                 },
                 }
             },
             else => {
-                std.debug.print("Unknown instruction: {x}\n",
+                std.debug.panic("Unknown instruction: {x}\n",
                                 .{instruction});
         },
         }
