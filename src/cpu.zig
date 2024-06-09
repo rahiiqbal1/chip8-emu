@@ -121,7 +121,10 @@ pub const CPU = struct {
         switch (largest_nibble) {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
             // to nnn:
-            0x1 => self.registers.pc = instruction & 0xFFF,
+            0x1 => {
+                self.registers.pc = instruction & 0xFFF;
+                std.debug.print("1nnn\n", .{});
+            },
             // (2nnn) CALL addr. Calls subroutine at nnn. Increments stack
             // pointer, then puts the current pc on the top of the stack.
             // The PC is then set to nnn:
@@ -130,6 +133,7 @@ pub const CPU = struct {
                 self.registers.stack[self.registers.sp] =
                     self.registers.pc;
                 self.registers.pc = instruction & 0xFFF;
+                std.debug.print("2nnn\n", .{});
             },
             // (3xkk) SE Vx, byte. Skip next instruction if Vx = kk. Compares
             // register Vx to kk, and if they are equal, increments the program
@@ -138,6 +142,8 @@ pub const CPU = struct {
                 if (vx.* == kk) {
                     self.registers.incrementPC();
                 }
+                self.registers.incrementPC();
+                std.debug.print("3xkk\n", .{});
             },
             // (4xkk) SNE Vx, byte. Skip next instruction if Vx != kk:
             0x4 => {
@@ -145,6 +151,7 @@ pub const CPU = struct {
                     self.registers.incrementPC();
                 }
                 self.registers.incrementPC();
+                std.debug.print("4xkk\n", .{});
             },
             // (5xy0) SE Vx, Vy. Skip next instruction if Vx = Vy:
             0x5 => {
@@ -152,11 +159,13 @@ pub const CPU = struct {
                     self.registers.incrementPC();
                 }
                 self.registers.incrementPC();
+                std.debug.print("5xy0\n", .{});
             },
             // (6xkk) LD Vx, byte. Puts the value kk into register Vx:
             0x6 => {
                 vx.* = kk;
                 self.registers.incrementPC();
+                std.debug.print("6xkk\n", .{});
             },
             // (7xkk) ADD Vx, byte. Adds the value kk to the value in register
             // Vx, then stores the result in Vx. If the result overflows the 
@@ -164,6 +173,7 @@ pub const CPU = struct {
             0x7 => {
                 vx.* = @truncate(vx.* + kk);
                 self.registers.incrementPC();
+                std.debug.print("7xkk\n", .{});
             },
             0x8 => {
                 switch (smallest_nibble) {
@@ -172,22 +182,26 @@ pub const CPU = struct {
                 0x0 => {
                     vx.* = vy.*;
                     self.registers.incrementPC();
+                    std.debug.print("8xy0\n", .{});
                 },
                 // (8xy1) OR Vx, Vy. Performs a bitwise OR on the values in Vx
                 // and Vy, then stores the result in Vx:
                 0x1 => {
                     vx.* |= vy.*; 
                     self.registers.incrementPC();
+                    std.debug.print("8xy1\n", .{});
                 },
                 // (8xy2) AND Vx, Vy. Set Vx = Vx AND Vy.
                 0x2 => {
                     vx.* &= vy.*; 
                     self.registers.incrementPC();
+                    std.debug.print("8xy2\n", .{});
                 },
                 // (8xy3) XOR Vx, Vy. Bitwise XOR on Vx and Vy, stores in Vx:
                 0x3 => {
                     vx.* ^= vy.*; 
                     self.registers.incrementPC();
+                    std.debug.print("8xy3\n", .{});
                 },
                 // (8xy4) ADD Vx, Vy. Set Vx = Vx + Vy, set VF = carry:
                 0x4 => {
@@ -196,6 +210,7 @@ pub const CPU = struct {
                     vf.* = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
                     self.registers.incrementPC();
+                    std.debug.print("8xy4\n", .{});
                 },
                 // (8xy5) SUB Vx, Vy. Set Vx = Vx - Vy. Set VF = NOT borrow.
                 // If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is 
@@ -205,28 +220,36 @@ pub const CPU = struct {
                     vx.* -%= vy.*;
                     vf.* = if (vx.* > vy.*) 1 else 0;
                     self.registers.incrementPC();
+                    std.debug.print("8xy5\n", .{});
                 },
                 // (8xy6) SHR Vx {, Vy}. If the least-significant bit of Vx is
                 // 1, then VF is set to 1, otherwise 0. Then Vx is divided by
                 // 2:
                 0x6 => {
-                    vf.* = if ((vx.* & 0b00000001) == 0b1) 1 else 0;
+                    const lsb_is1: bool = (vx.* & 0b00000001) == 0b1;
                     vx.* /= 2;
+                    vf.* = if (lsb_is1) 1 else 0;
                     self.registers.incrementPC();
+                    std.debug.print("8xy6\n", .{});
                 },
                 // (8xy7) SUBN Vx, Vy. Set Vx = Vy - Vx, set VF = NOT borrow.
                 0x7 => {
-                    vf.* = if (vy.* > vx.*) 1 else 0;
+                    const Vx = vx.*;
+                    const Vy = vy.*;
                     vx.* = vy.* -% vx.*;
+                    vf.* = if (Vy > Vx) 1 else 0;
                     self.registers.incrementPC();
+                    std.debug.print("8xy7\n", .{});
                 },
                 // (8xyE) SHL Vx {, Vy}. Set Vx = Vx SHL 1. If the most-
                 // significant bit of Vx is 1, then VF is set to 1, otherwise
                 // to 0. Then Vx is multiplied by 2:
                 0xE => {
-                    vf.* = if ((vx.* & 0b10000000) == 0b10000000) 1 else 0;
+                    const Vx = vx.*;
                     vx.* *= 2;
+                    vf.* = if ((Vx & 0b10000000) == 0b10000000) 1 else 0;
                     self.registers.incrementPC();
+                    std.debug.print("8xyE\n", .{});
                 },
                 else => {},
                 }
@@ -237,17 +260,20 @@ pub const CPU = struct {
                     self.registers.incrementPC();
                 }
                 self.registers.incrementPC();
+                std.debug.print("9xy0\n", .{});
             },
             // (Annn) LD I, addr. The value of register I is set to nnn:
             0xA => {
                 self.registers.I = instruction & 0x0FFF;
                 self.registers.incrementPC();
+                std.debug.print("Annn\n", .{});
             },
             // (Bnnn) JP V0, addr. Jump to location nnn + V0. The program 
             // counter is set to nnn plus the value in V0:
             0xB => {
                 self.registers.pc = (instruction & 0x0FFF) +
                                     self.registers.gen_regs[0];
+                std.debug.print("Bnnn\n", .{});
             },
             // (Cxkk) RND Vx, byte. Generates a random number from 0 to 255,
             // which is then ANDed with the value kk. The result is stored in 
@@ -257,6 +283,7 @@ pub const CPU = struct {
                     u8, 0, 255);
                 vx.* = rand_num & kk;
                 self.registers.incrementPC();
+                std.debug.print("Cxkk\n", .{});
             },
             // (Dxyn) DRW Vx, Vy, nibble. Display n-byte sprite starting at
             // memory location I at (Vx, Vy), set VF = collision. Read n bytes
@@ -303,6 +330,7 @@ pub const CPU = struct {
                     }
                 }
                 self.registers.incrementPC();
+                std.debug.print("Dxyn\n", .{});
             },
             0xE => {
                 switch (kk) {
@@ -315,6 +343,7 @@ pub const CPU = struct {
                             self.registers.incrementPC();
                         }
                         self.registers.incrementPC();
+                        std.debug.print("Ex9E\n", .{});
                     },
                     // (ExA1) SKNP Vx. Skip next instruction if key with the 
                     // value of Vx is not pressed:
@@ -323,6 +352,7 @@ pub const CPU = struct {
                             self.registers.incrementPC();
                         }
                         self.registers.incrementPC();
+                        std.debug.print("ExA1\n", .{});
                     },
                     else => {},
                 }
@@ -333,6 +363,7 @@ pub const CPU = struct {
                     0x07 => {
                         vx.* = @truncate(self.registers.dt);
                         self.registers.incrementPC();
+                        std.debug.print("Fx07\n", .{});
                     },
                     // (Fx0A) LD Vx, K. Wait for a key press, store the value
                     // of the key in Vx:
@@ -340,21 +371,25 @@ pub const CPU = struct {
                         self.paused = true;
                         self.paused_x = @as(u8, x);
                         self.registers.incrementPC();
+                        std.debug.print("Fx0A\n", .{});
                     },
                     // (Fx15) LD DT, Vx. Set delay timer = Vx:
                     0x15 => {
                         self.registers.dt = vx.*;
                         self.registers.incrementPC();
+                        std.debug.print("Fx15\n", .{});
                     },
                     // (Fx18) LD ST, Vx. Set sound timer = Vx:
                     0x18 => {
                         self.registers.st = vx.*;
                         self.registers.incrementPC();
+                        std.debug.print("Fx18\n", .{});
                     },
                     // (Fx1E) ADD I, Vx. Set I = I + Vx:
                     0x1E => {
                         self.registers.I += vx.*;
                         self.registers.incrementPC();
+                        std.debug.print("Fx1E\n", .{});
                     },
                     // (Fx29) LD F, Vx. Set I = location of sprite for digit 
                     // Vx. The value of I is set to the location for the
@@ -363,6 +398,7 @@ pub const CPU = struct {
                         // Multiply by 5 since every sprite is 5 bytes long:
                         self.registers.I = @as(u16, @intCast(vx.*)) * 5;
                         self.registers.incrementPC();
+                        std.debug.print("Fx29\n", .{});
                     },
                     // (Fx33) LD B, Vx. Store BCD representation of Vx in 
                     // memory locations I, I+1, and I+2. Takes the decimal 
@@ -378,6 +414,7 @@ pub const CPU = struct {
                         self.ram[self.registers.I + 1] = second_digit;
                         self.ram[self.registers.I + 2] = third_digit;
                         self.registers.incrementPC();
+                        std.debug.print("Fx33\n", .{});
                     },
                     // (Fx55) LD [I], Vx. Store registers V0 through Vx in 
                     // memory starting at location I:
@@ -391,6 +428,7 @@ pub const CPU = struct {
                             store_loc += 1;
                         }
                         self.registers.incrementPC();
+                        std.debug.print("Fx55\n", .{});
                     },
                     // (Fx65) LD Vx, [I]. Read registers V0 through Vx from 
                     // memory starting at location I:
@@ -404,6 +442,7 @@ pub const CPU = struct {
                             read_loc += 1;
                         }
                         self.registers.incrementPC();
+                        std.debug.print("Fx65\n", .{});
                     },
                     else => {},
                 }
