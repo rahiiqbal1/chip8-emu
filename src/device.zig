@@ -30,13 +30,25 @@ pub const Device = struct {
         };
     }
 
-    // Load raw ROM data into memory:
-    pub fn loadProgramIntoMemory(cpu: CPU, program: []u8) void {
-
-    }
-
     // Load the ROM data from a file:
-    pub fn loadROM(cpu: CPU, path: []const u8) bool {
+    pub fn loadROM(self: *Device, filename: []const u8) bool {
+        // Opening file with given name in cwd:
+        const file: std.fs.File = try std.fs.cwd().openFile(filename, .{});
+        defer file.close();
 
+        std.debug.print("Loading ROM...\n");
+        // Getting size of file:
+        const size: usize = try file.getEndPos();
+        std.debug.print("ROM File Size: {}\n", .{size});
+        const reader = file.reader();
+
+        // Reading bytes into memory:
+        var i: usize = 0;
+        while (i < size) : (i += 1) {
+            // Starting at position 0x200 in "ram":
+            self.cpu.ram[i + 0x200] = try reader.readByte();
+        }
+
+        std.debug.print("Loading ROM Succeeded!\n");
     }
 };
