@@ -40,7 +40,7 @@ const Registers = struct {
     }
 };
 
-const CPU = struct {
+pub const CPU = struct {
     // Memory. 4096 bytes available. The first 512 bytes (0x000 to 0x1FF) are
     // where the original interpreter was located and should not be used by
     // programs:
