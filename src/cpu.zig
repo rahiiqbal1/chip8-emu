@@ -53,11 +53,6 @@ pub const CPU = struct {
     paused: bool,
     paused_x: u8, // for storing key press after unpausing.
     speed: u8,
-    
-
-    // Random number generator:
-    var prng = std.rand.DefaultPrng.init(0); 
-    const random_generator = prng.random();
 
     // Initialises CPU instance:
     pub fn init(bitmap: *Bitmap, display: *Display) CPU {
@@ -73,6 +68,10 @@ pub const CPU = struct {
             .speed = 10,
         };
     }
+
+    // Random number generator:
+    var prng = std.rand.DefaultPrng.init(0); 
+    const random_generator = prng.random();
 
     // Gets and executes the instruction where program counter is pointing.
     // Note: Instructions are 2 bytes long, and are stored
@@ -114,7 +113,7 @@ pub const CPU = struct {
             self.bitmap.clear(0);
             self.registers.incrementPC();
             std.debug.print("00E0\n", .{});
-        // RET. Return from a subroutine. Sets to pc to the address at the top
+        // RET. Return from a subroutine. Sets the pc to the address at the top
         // of the stack and then decrements the stack pointer:
         } else if (instruction == 0x00EE) {
             self.registers.pc = self.registers.stack[self.registers.sp];
@@ -128,7 +127,7 @@ pub const CPU = struct {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
             // to nnn:
             0x1 => {
-                self.registers.pc = instruction & 0xFFF;
+                self.registers.pc = instruction & 0x0FFF;
                 std.debug.print("1nnn\n", .{});
                 self.registers.incrementPC();
             },
@@ -139,7 +138,7 @@ pub const CPU = struct {
                 self.registers.sp += 1;
                 self.registers.stack[self.registers.sp] =
                     self.registers.pc;
-                self.registers.pc = instruction & 0xFFF;
+                self.registers.pc = instruction & 0x0FFF;
                 std.debug.print("2nnn\n", .{});
                 self.registers.incrementPC();
             },
@@ -259,7 +258,10 @@ pub const CPU = struct {
                     self.registers.incrementPC();
                     std.debug.print("8xyE\n", .{});
                 },
-                else => {},
+                else => {
+                    std.debug.print("Unknown 8xyn instruction: {x}\n",
+                                    .{instruction});
+                },
                 }
             },
             // (9xy0) SNE Vx, Vy. Skip next instruction if Vx != Vy:
@@ -362,7 +364,10 @@ pub const CPU = struct {
                         self.registers.incrementPC();
                         std.debug.print("ExA1\n", .{});
                     },
-                    else => {},
+                    else => {
+                        std.debug.print("Unknown Exkk instruction: {x}\n",
+                                        .{instruction});
+                    },
                 }
             },
             0xF => {
@@ -452,10 +457,16 @@ pub const CPU = struct {
                         self.registers.incrementPC();
                         std.debug.print("Fx65\n", .{});
                     },
-                    else => {},
+                    else => {
+                        std.debug.print("Unknown Fxkk instruction: {x}\n",
+                                        .{instruction});
+                },
                 }
             },
-            else => {},
+            else => {
+                std.debug.print("Unknown instruction: {x}\n",
+                                .{instruction});
+        },
         }
     }
 };
