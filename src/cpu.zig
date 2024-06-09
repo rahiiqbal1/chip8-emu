@@ -48,8 +48,8 @@ pub const CPU = struct {
     // programs:
     ram: [4096]u8,
     registers: Registers,
-    bitmap: Bitmap,
-    display: Display,
+    bitmap: *Bitmap,
+    display: *Display,
 
     // Random number generator:
     var prng = std.rand.DefaultPrng.init(blk: {
@@ -60,14 +60,14 @@ pub const CPU = struct {
     const random_generator = prng.random();
 
     // Initialises CPU instance:
-    pub fn init() CPU {
+    pub fn init(bitmap: *Bitmap, display: *Display) CPU {
         const registers: Registers = Registers.init();
 
         return CPU {
             .ram = [1]u8{0} ** 4096,
             .registers = registers,
-            .bitmap = Bitmap.create(),
-            .display = Display.create(),
+            .bitmap = bitmap,
+            .display = display,
         };
     }
 
