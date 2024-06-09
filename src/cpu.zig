@@ -28,7 +28,7 @@ const Registers = struct {
             .I = 0,
             .dt = 0,
             .st = 0,
-            .pc = 0,
+            .pc = 0x200, // Starting at 0x200 as that is where files begin.
             .stack = [1]u16{0} ** 16,
             .sp = 0,
         };
