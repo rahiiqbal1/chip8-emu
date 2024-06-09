@@ -1,4 +1,6 @@
 const std = @import("std");
+const Bitmap = @import("bitmap.zig").Bitmap;
+const Display = @import("display.zig").Display;
 
 const Registers = struct {
     // 16 General purpose 8-bit registers, V0-F, Note; VF is a flag and should
@@ -46,6 +48,8 @@ pub const CPU = struct {
     // programs:
     ram: [4096]u8,
     registers: Registers,
+    bitmap: Bitmap,
+    display: Display,
 
     // Random number generator:
     var prng = std.rand.DefaultPrng.init(blk: {
@@ -255,23 +259,64 @@ pub const CPU = struct {
             // screen. If this causes any pixels to be erased, VF is set to 1,
             // otherwise to 0. If the sprite is positioned so part of it is 
             // outside the coordinates of the display, it wraps around to the
-            // opposite side of the screen: todo
+            // opposite side of the screen:
             0xD => {
+                const width: u16 = 8; // All sprites 8 wide.
+                const height: u16 = instruction & 0xF;
 
+                vf.* = 0;
+
+                var row: u8 = 0;
+                while (row < height) : (row += 1) {
+                    const sprite = self.ram[self.registers.I + row];
+
+                    const col: u8 = 0;
+                    while (col < width) : (col += 1) {
+                        // Wrap x and y around the screen if out-of-bounds:
+                        const px: u8 =
+                            self.registers.gen_regs[x] % self.bitmap.width;
+                        const py: u8 = 
+                            self.registers.gen_regs[y] % self.bitmap.height;
+
+                        // Don't wrap pixels that are outside of the bounds:
+                        if (px + col >= self.bitmap.width) continue;
+                        if (py + row >= self.bitmap.height) continue;
+
+                        // If the bit (sprite) is not 0 render/erase the pixel:
+                        if ((sprite & 0x80) > 0) {
+                            // If setPixel returns true a pixel was erased, so
+                            // set VF to 1:
+                            if (self.bitmap.setPixel(px + col, py + row)) {
+                                vf.* = 1;
+                            }
+                        }
+                        
+                        // Shift the sprite left 1 and move the next col/bit of
+                        // the sprite into the first position:
+                        sprite <<= 1;
+                    }
+                }
+                self.registers.incrementPC();
             },
             0xE => {
                 switch (kk) {
                     // (Ex9E) SKP Vx. Skip next instruction if key with the 
                     // value of Vx is pressed. Checks the keyboard, and if the
                     // key corresponding to the value of Vx is currently down,
-                    // PC is increased by 2: todo
+                    // PC is increased by 2:
                     0x9E => {
-
+                        if (self.display.keys[vx.*]) {
+                            self.registers.incrementPC();
+                        }
+                        self.registers.incrementPC();
                     },
                     // (ExA1) SKNP Vx. Skip next instruction if key with the 
-                    // value of Vx is not pressed: todo
+                    // value of Vx is not pressed:
                     0xA1 => {
-
+                        if (!self.display.keys[vx.*]) {
+                            self.registers.incrementPC();
+                        }
+                        self.registers.incrementPC();
                     },
                 }
             },
