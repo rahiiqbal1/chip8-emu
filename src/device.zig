@@ -1,5 +1,7 @@
 const std = @import("std");
 const CPU = @import("cpu.zig").CPU;
+const Bitmap = @import("bitmap.zig").Bitmap;
+const Display = @import("display.zig").Display;
 
 const DEFAULT_FONT = [80]u8 {
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -24,9 +26,9 @@ pub const Device = struct {
     cpu: CPU,
 
     // Create the device:
-    pub fn create() Device {
+    pub fn create(bitmap: *Bitmap, display: *Display) Device {
         return Device {
-            .cpu = CPU.init(),
+            .cpu = CPU.init(bitmap, display),
         };
     }
 
