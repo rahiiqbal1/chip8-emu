@@ -92,7 +92,7 @@ pub const CPU = struct {
                                  self.ram[self.registers.pc + 1];
 
         // Getting first nibble for matching:
-        const largest_nibble: u4 = @truncate(instruction & 0xF000 >> 12);
+        const largest_nibble: u4 = @truncate((instruction & 0xF000) >> 12);
         // Smallest nibble in instruction to switch over:
         const smallest_nibble: u4 = @truncate(instruction & 0x000F);
         // Rightmost byte in instruction:
@@ -107,6 +107,8 @@ pub const CPU = struct {
         const vf: *u8 = &self.registers.gen_regs[0xF];
 
         std.debug.print("Current instruction: {x}\n", .{instruction});
+        std.debug.print("Largest nibble: {x}\n", .{largest_nibble});
+        std.debug.print("Smallest nibble: {x}\n", .{smallest_nibble});
         
         // Checking basic cases first:
         if (instruction == 0x00E0) {
