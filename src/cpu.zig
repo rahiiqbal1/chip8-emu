@@ -109,7 +109,8 @@ pub const CPU = struct {
         
         // Checking basic cases first:
         if (instruction == 0x00E0) {
-            std.debug.print("CLS not implemented\n", .{});
+            self.bitmap.clear(0);
+            std.debug.print("00E0\n", .{});
         // RET. Return from a subroutine. Sets to pc to the address at the top
         // of the stack and then decrements the stack pointer:
         } else if (instruction == 0x00EE) {
@@ -117,6 +118,8 @@ pub const CPU = struct {
             self.registers.sp -= 1;
             // Increment program counter:
             self.registers.incrementPC();
+            std.debug.print("00EE\n", .{});
+            
         }
         switch (largest_nibble) {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
