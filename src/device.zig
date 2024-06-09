@@ -31,15 +31,15 @@ pub const Device = struct {
     }
 
     // Load the ROM data from a file:
-    pub fn loadROM(self: *Device, filename: []const u8) bool {
-        // Opening file with given name in cwd:
-        const file: std.fs.File = try std.fs.cwd().openFile(filename, .{});
+    pub fn loadROM(self: *Device, filepath: []const u8) !bool {
+        // Opening file with given name:
+        const file: std.fs.File = try std.fs.openFileAbsolute(filepath, .{});
         defer file.close();
 
-        std.debug.print("Loading ROM...\n");
+        std.debug.print("Loading ROM...\n", .{});
         // Getting size of file:
         const size: usize = try file.getEndPos();
-        std.debug.print("ROM File Size: {}\n", .{size});
+        std.debug.print("ROM File Size: {}B\n", .{size});
         const reader = file.reader();
 
         // Reading bytes into memory:
@@ -49,6 +49,7 @@ pub const Device = struct {
             self.cpu.ram[i + 0x200] = try reader.readByte();
         }
 
-        std.debug.print("Loading ROM Succeeded!\n");
+        std.debug.print("Loading ROM Succeeded!\n", .{});
+        return true;
     }
 };

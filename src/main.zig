@@ -1,6 +1,7 @@
 const std = @import("std");
 const Display = @import("display.zig").Display;
 const Bitmap = @import("bitmap.zig").Bitmap;
+const Device = @import("device.zig").Device;
 
 pub fn main() !void {
     // General purpose memory allocator:
@@ -23,6 +24,9 @@ pub fn main() !void {
         bitmap.width, bitmap.height
     );
     defer display.free();
+
+    var dev_test: Device = Device.create();
+    _ = try dev_test.loadROM("/home/rahi/projs/chip8-emu/roms/tetris.rom");
 
     // Display loop:
     while (display.open == true) {

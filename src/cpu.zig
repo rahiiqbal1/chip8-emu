@@ -29,7 +29,7 @@ const Registers = struct {
             .dt = 0,
             .st = 0,
             .pc = 0,
-            .stack = [1]u8{0} ** 16,
+            .stack = [1]u16{0} ** 16,
             .sp = 0,
         };
     }
