@@ -262,8 +262,8 @@ pub const CPU = struct {
                 0x4 => {
                     const sum: u32 = @as(u32, vx.*) + @as(u32, vy.*);
                     const truncated_sum: u8 = @truncate(sum);
-                    vf.* = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
+                    vf.* = if (sum > 0xFF) 1 else 0;
                     
                     std.debug.print("8xy4\n", .{});
                 },
