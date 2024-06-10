@@ -26,7 +26,7 @@ pub fn main() !void {
 
     // Creating device and loading rom:
     var chip8: Device = Device.create(&bitmap, &display);
-    _ = try chip8.loadROM("/home/rahi/projs/chip8-emu/roms/3-corax+.ch8");
+    _ = try chip8.loadROM("/home/rahi/projs/chip8-emu/roms/2-ibm-logo.ch8");
 
     // Display loop:
     const fps: f32 = 60.0;

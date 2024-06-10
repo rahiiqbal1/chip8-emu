@@ -90,7 +90,6 @@ pub const CPU = struct {
     // most-significant-byte first. The first byte of each instruction should
     // be located at an even address.
     pub fn cycle (self: *CPU) !void {
-
         if (self.paused) {
             var i: u8 = 0;
             while (i < 16) : (i += 1) {
@@ -105,9 +104,16 @@ pub const CPU = struct {
         while (i < self.speed) : (i += 1) {
             // Don't run instructions if the emulator is paused:
             if (!self.paused) {
-                try self.executeInstruction();
-                // Increment program counter after each instruction:
+            // Getting and storing 2-byte instruction. Instructions are stored
+            // big-endian, so need to shift left by 8 bits. Or-ing with pc + 1
+            // as the pc only points to 1 byte at a time:
+            const instruction: u16 =
+                @as(u16, self.ram[self.registers.pc]) << 8 |
+                self.ram[self.registers.pc + 1];
+
+                // Increment pc (as instruction is known) and execute:
                 self.registers.pc += 2;
+                try self.executeInstruction(instruction);
             }
         }
 
@@ -118,7 +124,7 @@ pub const CPU = struct {
         }
     }
 
-    fn executeInstruction(self: *CPU) !void {
+    fn executeInstruction(self: *CPU, instruction: u16) !void {
         // Checking that the pc address is valid:
         if (self.registers.pc > 0xFFF) {
             std.debug.print("The PC address {} is greater than is possible.\n",
@@ -126,11 +132,6 @@ pub const CPU = struct {
             return error.InvalidPCAddress;
         }
         
-        // Getting and storing 2-byte instruction. Instructions are stored
-        // big-endian, so need to shift left by 8 bits. Or-ing with pc + 1
-        // as the pc only points to 1 byte at a time:
-        const instruction: u16 = @as(u16, self.ram[self.registers.pc]) << 8 |
-                                 self.ram[self.registers.pc + 1];
 
         // Getting first nibble for matching:
         const largest_nibble: u4 = @truncate((instruction & 0xF000) >> 12);
@@ -259,7 +260,7 @@ pub const CPU = struct {
                 },
                 // (8xy4) ADD Vx, Vy. Set Vx = Vx + Vy, set VF = carry:
                 0x4 => {
-                    const sum: usize = vx.* + vy.*; 
+                    const sum: u32 = @as(u32, vx.*) + @as(u32, vy.*);
                     const truncated_sum: u8 = @truncate(sum);
                     vf.* = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
@@ -356,22 +357,22 @@ pub const CPU = struct {
             // outside the coordinates of the display, it wraps around to the
             // opposite side of the screen:
             0xD => {
-                const width: u16 = 8; // All sprites 8 wide.
-                const height: u16 = instruction & 0xF;
+                // Wrap x and y around the screen if out-of-bounds:
+                const px: u8 =
+                    self.registers.gen_regs[x] % self.bitmap.width;
+                const py: u8 = 
+                    self.registers.gen_regs[y] % self.bitmap.height;
 
                 vf.* = 0;
 
+                const width: u16 = 8; // All sprites 8 wide.
+                const height: u16 = instruction & 0xF;
                 var row: u8 = 0;
                 while (row < height) : (row += 1) {
                     var sprite = self.ram[self.registers.I + row];
 
                     var col: u8 = 0;
                     while (col < width) : (col += 1) {
-                        // Wrap x and y around the screen if out-of-bounds:
-                        const px: u8 =
-                            self.registers.gen_regs[x] % self.bitmap.width;
-                        const py: u8 = 
-                            self.registers.gen_regs[y] % self.bitmap.height;
 
                         // Don't wrap pixels that are outside of the bounds:
                         if (px + col >= self.bitmap.width) continue;
