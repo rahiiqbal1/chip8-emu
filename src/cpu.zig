@@ -89,6 +89,8 @@ pub const CPU = struct {
             // Don't run instructions if the emulator is paused:
             if (!self.paused) {
                 try self.executeInstruction();
+                // Increment program counter after each instruction:
+                self.registers.pc += 2;
             }
         }
 
@@ -143,36 +145,33 @@ pub const CPU = struct {
         } else if (instruction == 0x00EE) {
             self.registers.pc = self.registers.stack[self.registers.sp];
             self.registers.sp -= 1;
-            // Increment program counter:
-            
+
             std.debug.print("00EE\n", .{});
-            
         }
         switch (largest_nibble) {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
             // to nnn:
             0x1 => {
                 self.registers.pc = instruction & 0x0FFF;
+
                 std.debug.print("1nnn\n", .{});
-                
             },
             // (2nnn) CALL addr. Calls subroutine at nnn. Increments stack
             // pointer, then puts the current pc on the top of the stack.
             // The PC is then set to nnn:
             0x2 => {
                 self.registers.sp += 1;
-                self.registers.stack[self.registers.sp] =
-                    self.registers.pc;
+                self.registers.stack[self.registers.sp] = self.registers.pc;
                 self.registers.pc = instruction & 0x0FFF;
+
                 std.debug.print("2nnn\n", .{});
-                
             },
             // (3xkk) SE Vx, byte. Skip next instruction if Vx = kk. Compares
             // register Vx to kk, and if they are equal, increments the program
             // counter by 2:
             0x3 => {
                 if (vx.* == kk) {
-                    
+                    self.registers.pc += 2;
                 }
                 
                 std.debug.print("3xkk\n", .{});
@@ -180,7 +179,7 @@ pub const CPU = struct {
             // (4xkk) SNE Vx, byte. Skip next instruction if Vx != kk:
             0x4 => {
                 if (vx.* != kk) {
-                    
+                    self.registers.pc += 2;
                 }
                 
                 std.debug.print("4xkk\n", .{});
@@ -188,7 +187,7 @@ pub const CPU = struct {
             // (5xy0) SE Vx, Vy. Skip next instruction if Vx = Vy:
             0x5 => {
                 if (vx.* == vy.*) {
-                    
+                    self.registers.pc += 2;
                 }
                 
                 std.debug.print("5xy0\n", .{});
@@ -292,7 +291,7 @@ pub const CPU = struct {
             // (9xy0) SNE Vx, Vy. Skip next instruction if Vx != Vy:
             0x9 => {
                 if (vx.* != vy.*) {
-                    
+                    self.registers.pc += 2;
                 }
                 
                 std.debug.print("9xy0\n", .{});
@@ -375,7 +374,7 @@ pub const CPU = struct {
                     // PC is increased by 2:
                     0x9E => {
                         if (self.display.keys[vx.*]) {
-                            
+                            self.registers.pc += 2;
                         }
                         
                         std.debug.print("Ex9E\n", .{});
@@ -384,7 +383,7 @@ pub const CPU = struct {
                     // value of Vx is not pressed:
                     0xA1 => {
                         if (!self.display.keys[vx.*]) {
-                            
+                            self.registers.pc += 2;
                         }
                         
                         std.debug.print("ExA1\n", .{});
