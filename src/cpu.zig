@@ -97,14 +97,11 @@ pub const CPU = struct {
             }
         }
 
+        // Update timers:
         if (!self.paused) {
-            self.updateTimers();
+            if (self.registers.dt > 0) self.registers.dt -= 1;
+            if (self.registers.st > 0) self.registers.st -= 1;
         }
-    }
-
-    fn updateTimers(self: *CPU) void {
-        if (self.registers.dt > 0) self.registers.dt -= 1;
-        if (self.registers.st > 0) self.registers.st -= 1;
     }
 
     fn executeInstruction(self: *CPU) !void {
