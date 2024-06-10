@@ -159,11 +159,10 @@ pub const CPU = struct {
             
             std.debug.print("00E0\n", .{});
             return;
-        // RET. Return from a subroutine. Sets the pc to the address at the top
-        // of the stack and then decrements the stack pointer:
+        // (00EE) RET. Return from a subroutine. Sets the pc to the address at
+        // the top of the stack and then decrements the stack pointer:
         } else if (instruction == 0x00EE) {
-            self.registers.pc = self.registers.stack[self.registers.sp];
-            self.registers.sp -= 1;
+            self.registers.pc = self.registers.stackPop();
 
             std.debug.print("00EE\n", .{});
             return;
@@ -180,8 +179,7 @@ pub const CPU = struct {
             // pointer, then puts the current pc on the top of the stack.
             // The PC is then set to nnn:
             0x2 => {
-                self.registers.sp += 1;
-                self.registers.stack[self.registers.sp] = self.registers.pc;
+                self.registers.stackPush(self.registers.pc);
                 self.registers.pc = instruction & 0x0FFF;
 
                 std.debug.print("2nnn\n", .{});
