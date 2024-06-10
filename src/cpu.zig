@@ -234,21 +234,26 @@ pub const CPU = struct {
                     std.debug.print("8xy0\n", .{});
                 },
                 // (8xy1) OR Vx, Vy. Performs a bitwise OR on the values in Vx
-                // and Vy, then stores the result in Vx:
+                // and Vy, then stores the result in Vx. Set the flag register
+                // to 0(?):
                 0x1 => {
                     vx.* |= vy.*; 
+                    vf.* = 0;
                     
                     std.debug.print("8xy1\n", .{});
                 },
-                // (8xy2) AND Vx, Vy. Set Vx = Vx AND Vy.
+                // (8xy2) AND Vx, Vy. Set Vx = Vx AND Vy. Set vf = 0(?):
                 0x2 => {
                     vx.* &= vy.*; 
+                    vf.* = 0;
                     
                     std.debug.print("8xy2\n", .{});
                 },
-                // (8xy3) XOR Vx, Vy. Bitwise XOR on Vx and Vy, stores in Vx:
+                // (8xy3) XOR Vx, Vy. Bitwise XOR on Vx and Vy, stores in Vx.
+                // Set vf = 0(?):
                 0x3 => {
                     vx.* ^= vy.*; 
+                    vf.* = 0;
                     
                     std.debug.print("8xy3\n", .{});
                 },
@@ -266,8 +271,11 @@ pub const CPU = struct {
                 // subtracted from Vx, and the result is stored in Vx (with
                 // overflow):
                 0x5 => {
+                    const Vx = vx.*;
+                    const Vy = vy.*;
+
                     vx.* -%= vy.*;
-                    vf.* = if (vx.* > vy.*) 1 else 0;
+                    vf.* = if (Vx > Vy) 1 else 0;
                     
                     std.debug.print("8xy5\n", .{});
                 },
@@ -275,9 +283,10 @@ pub const CPU = struct {
                 // 1, then VF is set to 1, otherwise 0. Then Vx is divided by
                 // 2:
                 0x6 => {
-                    const lsb_is1: bool = (vx.* & 0b00000001) == 0b1;
-                    vx.* /= 2;
-                    vf.* = if (lsb_is1) 1 else 0;
+                    const Vy = vy.*;
+                    vx.* = Vy >> 1;
+
+                    vf.* = if (Vy & 0b00000001 == 0b1) 1 else 0;
                     
                     std.debug.print("8xy6\n", .{});
                 },
@@ -294,9 +303,10 @@ pub const CPU = struct {
                 // significant bit of Vx is 1, then VF is set to 1, otherwise
                 // to 0. Then Vx is multiplied by 2:
                 0xE => {
-                    const Vx = vx.*;
-                    vx.* *= 2;
-                    vf.* = if ((Vx & 0b10000000) == 0b10000000) 1 else 0;
+                    const Vy = vy.*;
+                    vx.* = Vy << 1;
+
+                    vf.* = if ((Vy & 0b10000000) == 0b10000000) 1 else 0;
                     
                     std.debug.print("8xyE\n", .{});
                 },
@@ -461,9 +471,8 @@ pub const CPU = struct {
                     // at location I, the tens digit at location I+1, and the 
                     // ones digit at location I+2:
                     0x33 => {
-                        const first_digit: u8 = vx.* / 100;
-                        const second_digit: u8 = (vx.* / 10) - 
-                                                 (first_digit * 10);
+                        const first_digit: u8 = (vx.* / 100) % 10;
+                        const second_digit: u8 = (vx.* / 10) % 10;
                         const third_digit: u8 = vx.* % 10;
                         self.ram[self.registers.I] = first_digit;
                         self.ram[self.registers.I + 1] = second_digit;
@@ -474,28 +483,24 @@ pub const CPU = struct {
                     // (Fx55) LD [I], Vx. Store registers V0 through Vx in 
                     // memory starting at location I:
                     0x55 => {
-                        var store_loc: u16 = self.registers.I;
                         var reg_counter: u8 = 0;
-                        while (reg_counter <= x) {
-                            self.ram[store_loc] =
+                        while (reg_counter <= x) : (reg_counter += 1) {
+                            self.ram[self.registers.I + reg_counter] =
                                 self.registers.gen_regs[reg_counter];
-                            reg_counter += 1;
-                            store_loc += 1;
                         }
+                        self.registers.I += reg_counter;
                         
                         std.debug.print("Fx55\n", .{});
                     },
                     // (Fx65) LD Vx, [I]. Read registers V0 through Vx from 
                     // memory starting at location I:
                     0x65 => {
-                        var read_loc: u16 = self.registers.I;
                         var reg_counter: u8 = 0;
-                        while (reg_counter <= x) {
+                        while (reg_counter <= x) : (reg_counter += 1) {
                             self.registers.gen_regs[reg_counter] =
-                                self.ram[read_loc];
-                            reg_counter += 1;
-                            read_loc += 1;
+                                self.ram[self.registers.I + reg_counter];
                         }
+                        self.registers.I += reg_counter;
                         
                         std.debug.print("Fx65\n", .{});
                     },
