@@ -136,10 +136,12 @@ pub const CPU = struct {
         std.debug.print("Smallest nibble: {x}\n", .{smallest_nibble});
         
         // Checking basic cases first:
+        // (00E0) CLS. Clears the screen:
         if (instruction == 0x00E0) {
             self.bitmap.clear(0);
             
             std.debug.print("00E0\n", .{});
+            return;
         // RET. Return from a subroutine. Sets the pc to the address at the top
         // of the stack and then decrements the stack pointer:
         } else if (instruction == 0x00EE) {
@@ -147,6 +149,7 @@ pub const CPU = struct {
             self.registers.sp -= 1;
 
             std.debug.print("00EE\n", .{});
+            return;
         }
         switch (largest_nibble) {
             // (1nnn) JP addr. Jump to location nnn. Sets the program counter
