@@ -26,7 +26,7 @@ pub fn main() !void {
 
     // Creating device and loading rom:
     var chip8: Device = Device.create(&bitmap, &display);
-    _ = try chip8.loadROM("/home/rahi/projs/chip8-emu/roms/test_opcode.rom");
+    _ = try chip8.loadROM("/home/rahi/projs/chip8-emu/roms/3-corax+.ch8");
 
     // Display loop:
     const fps: f32 = 60.0;

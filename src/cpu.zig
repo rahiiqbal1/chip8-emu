@@ -139,8 +139,8 @@ pub const CPU = struct {
         // Rightmost byte in instruction:
         const kk: u8 = @truncate(instruction & 0x00FF);
         // X and Y, second and third nibbles for each instruction:
-        const x: u4 = @truncate(instruction & 0x0F00 >> 8);
-        const y: u4 = @truncate(instruction & 0x00F0 >> 4);
+        const x: u4 = @truncate((instruction & 0x0F00) >> 8);
+        const y: u4 = @truncate((instruction & 0x00F0) >> 4);
         // Pointers to corresponding Vx and Vy registers:
         const vx: *u8 = &self.registers.gen_regs[x];
         const vy: *u8 = &self.registers.gen_regs[y];
@@ -259,7 +259,7 @@ pub const CPU = struct {
                 },
                 // (8xy4) ADD Vx, Vy. Set Vx = Vx + Vy, set VF = carry:
                 0x4 => {
-                    const sum: u16 = vx.* + vy.*; 
+                    const sum: usize = vx.* + vy.*; 
                     const truncated_sum: u8 = @truncate(sum);
                     vf.* = if (sum > 0xFF) 1 else 0;
                     vx.* = truncated_sum;
