@@ -35,6 +35,23 @@ const Registers = struct {
             .sp = 0,
         };
     }
+
+    // Stack push and pop methods:
+    pub fn stackPush(self: *Registers, address: u16) void {
+        if (self.sp > 15) return;
+
+        self.stack[self.sp] = address;
+        self.sp += 1;
+    }
+
+    pub fn stackPop(self: *Registers) u16 {
+        if (self.sp == 0) return 0;
+
+        const val_at_top: u16 = self.stack[self.sp - 1];
+        self.sp -= 1;
+
+        return val_at_top;
+    }
 };
 
 pub const CPU = struct {
