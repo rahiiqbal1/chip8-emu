@@ -35,11 +35,6 @@ const Registers = struct {
             .sp = 0,
         };
     }
-
-    pub inline fn incrementPC(self: *Registers) void {
-        // Incrementing by 2 because instructions are 2 bytes long:
-        self.pc += 2;
-    }
 };
 
 pub const CPU = struct {
